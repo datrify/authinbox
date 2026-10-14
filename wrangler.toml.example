@@ -1,0 +1,106 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "auth-inbox"
+# Your Cloudflare Worker Name
+# 你的 Cloudflare Worker 名称
+
+main = "src/index.ts"
+compatibility_date = "2024-10-04"
+compatibility_flags = ["nodejs_compat"]
+
+# If you want to use a custom domain, you need to add routes configuration.
+# 如果你想使用自定义域名，你需要添加 routes 配置
+#routes = [
+# { pattern = "email.xxxxx.com", custom_domain = true },
+#]
+
+[assets]
+directory = "./web/dist"
+binding = "ASSETS"
+
+# Workers Logs
+# Docs: https://developers.cloudflare.com/workers/observability/logs/workers-logs/
+# Configuration: https://developers.cloudflare.com/workers/observability/logs/workers-logs/#enable-workers-logs
+[observability]
+enabled = true
+
+# Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
+# Docs:
+# - https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+# Note: Use secrets to store sensitive data.
+# - https://developers.cloudflare.com/workers/configuration/secrets/
+[vars]
+UseBark = "true"
+# UseBark: String
+# set to "true" to use bark, set to "false" to disable bark
+# 是否使用 bark 推送，设置为 "true" 以启用 bark 推送，设置为 "false" 以禁用 bark 推送
+
+barkUrl = "https://api.day.app" # set to your bark url, default is "https://api.day.app"
+# barkUrl: String
+# set to your bark url, default is "https://api.day.app"
+# 设定你的 bark 推送地址，默认为 "https://api.day.app"
+
+barkTokens = "[token1, token2]"
+# barkTokens: String
+# set to your bark tokens on your iOS device, download it from https://bark.day.app/, you can use multiple tokens, if you only use one, then set it to "[token1]"
+# if you dont use bark push, then no need to change
+# 设定你的 bark tokens，从 https://bark.day.app/ 下载iOS APP，你可以使用多个 tokens，如果你只使用一个 token，那么设置为 "[token1]"
+# 如果你不使用 bark 推送，那么无需改动
+
+# --- Primary AI provider ---
+AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+# Base URL of your AI provider (no trailing slash).
+# Examples:
+#   OpenAI:            https://api.openai.com
+#   Gemini (OAI-compat): https://generativelanguage.googleapis.com/v1beta/openai
+#   Anthropic:         https://api.anthropic.com
+#   DeepSeek:          https://api.deepseek.com
+#   Groq:              https://api.groq.com/openai
+
+AI_API_KEY = "your-api-key"
+# API key for the primary provider. Use a Cloudflare Secret for production.
+# 主模型的 API Key，生产环境请使用 Cloudflare Secret 存储
+
+AI_API_FORMAT = "openai"
+# Request/response format. One of:
+#   openai     — POST /v1/chat/completions  (OpenAI, Gemini compat, DeepSeek, Groq, etc.)
+#   responses  — POST /v1/responses         (OpenAI Responses API)
+#   anthropic  — POST /v1/messages          (Anthropic Claude direct)
+# 请求格式，三选一：openai | responses | anthropic
+
+AI_MODEL = "gemini-2.0-flash"
+# Model ID to use, e.g. "gpt-4o-mini", "gemini-2.0-flash", "claude-3-5-haiku-20241022"
+# 模型 ID
+
+# --- Fallback AI provider (optional — remove all four lines to disable) ---
+# AI_FALLBACK_BASE_URL   = "https://api.openai.com"
+# AI_FALLBACK_API_KEY    = "your-fallback-api-key"
+# AI_FALLBACK_API_FORMAT = "openai"
+# AI_FALLBACK_MODEL      = "gpt-4o-mini"
+
+# Bind a D1 database. D1 is Cloudflare’s native serverless SQL database.
+# Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#d1-databases
+[[d1_databases]]
+binding = "DB"
+database_name = "inbox-d1"
+database_id = "********-****-****-****-************"
+# database_id: String
+# replace with your database id
+# 请你替换为你的数据库 ID
+
+# --- Optional: OAuth for claude.ai remote connectors ---
+# Only needed if you want to connect claude.ai as a remote MCP connector.
+# Without this binding, OAuth is disabled and /mcp works with aik_ API keys only.
+# The binding name MUST be OAUTH_KV — required by @cloudflare/workers-oauth-provider.
+# To enable: run `npx wrangler kv namespace create OAUTH_KV`, uncomment the three
+# lines below, and replace the id with the one the command prints.
+# 可选功能: 仅当你要把 claude.ai 作为远程连接器接入时才需要。
+# 不绑定则 OAuth 关闭, /mcp 只认 aik_ API key。绑定名必须叫 OAUTH_KV (库的硬性要求)。
+# 启用方法: 用上面的命令创建 KV, 取消下面三行的注释, 把 id 换成命令输出的值。
+# [[kv_namespaces]]
+# binding = "OAUTH_KV"
+# id = "REPLACE_WITH_YOUR_OAUTH_KV_NAMESPACE_ID"
+
+# --- Required secret (not a [vars] entry) ---
+# JWT_SECRET signs login session tokens. Set it as a Cloudflare Secret after deploy:
+#   pnpm exec wrangler secret put JWT_SECRET
+# JWT_SECRET 用于签名登录会话，请在部署后通过 Cloudflare Secret 设置，不要写进 [vars]。
